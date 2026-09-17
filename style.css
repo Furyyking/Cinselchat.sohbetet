@@ -574,18 +574,41 @@ button {
 @media (max-width: 430px) {
 
   .content {
-    grid-template-columns: 1fr 105px;
+    grid-template-columns: minmax(0, 1fr) 105px;
+    width: 100%;
   }
 
-  .profile {
-    max-width: 95px;
-    overflow: hidden;
+  .chat {
+    min-width: 0;
+    width: 100%;
   }
 
-  .profile span:last-child {
+  .users-panel {
+    display: block;
+    width: 105px;
+    min-width: 105px;
+    padding: 10px 7px;
+    overflow-x: hidden;
+  }
+
+  .user-row {
+    width: 100%;
+    min-width: 0;
+    gap: 5px;
+    font-size: 11px;
+  }
+
+  .user-row span {
+    min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+  }
+
+  .profile {
+    max-width: 90px;
+    min-width: 0;
+    overflow: hidden;
   }
 
   .room-btn {
@@ -594,5 +617,19 @@ button {
 
   .chat-head {
     margin: 7px;
+    min-width: 0;
+  }
+
+  .messages {
+    min-width: 0;
+    overflow-x: hidden;
+  }
+
+  .composer {
+    min-width: 0;
+  }
+
+  .composer input {
+    min-width: 0;
   }
 }
