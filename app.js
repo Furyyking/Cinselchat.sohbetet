@@ -1,79 +1,231 @@
 const socket = io();
 
-const nickInput = document.getElementById("nick");
-const joinBtn = document.getElementById("join");
-const textInput = document.getElementById("text");
-const form = document.getElementById("form");
-const messages = document.getElementById("messages");
+const login = document.getElementById("login");
+const app = document.getElementById("app");
+const loginNick = document.getElementById("loginNick");
+const loginBtn = document.getElementById("loginBtn");
+const myNick = document.getElementById("myNick");
 const status = document.getElementById("status");
-const users = document.getElementById("users");
+const roomsEl = document.getElementById("rooms");
+const usersEl = document.getElementById("users");
+const messages = document.getElementById("messages");
+const form = document.getElementById("form");
+const text = document.getElementById("text");
+const roomName = document.getElementById("roomName");
+const onlineCount = document.getElementById("onlineCount");
+const userCount = document.getElementById("userCount");
+const logoutBtn = document.getElementById("logoutBtn");
+const emojiBtn = document.getElementById("emojiBtn");
 
 let nick = "";
+let currentRoom = "Genel";
+
+const roomIcons = {
+  "Genel": "💬",
+  "Sohbet": "🗨️",
+  "Arkadaşlık": "👥",
+  "Müzik": "🎵",
+  "Oyun": "🎮",
+  "+18": "♥"
+};
+
+loginBtn.addEventListener("click", join);
+
+loginNick.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") {
+    join();
+  }
+});
+
+function join() {
+  const value = loginNick.value.trim();
+
+  if (!value) {
+    loginNick.focus();
+    return;
+  }
+
+  nick = value.slice(0, 24);
+
+  myNick.textContent = nick;
+
+  login.classList.add("hidden");
+  app.classList.remove("hidden");
+
+  socket.emit("join", {
+    nick: nick,
+    room: "Genel"
+  });
+
+  text.focus();
+}
 
 socket.on("connect", () => {
   status.textContent = "🟢 Bağlandı";
+
+  if (nick) {
+    socket.emit("join", {
+      nick: nick,
+      room: currentRoom
+    });
+  }
 });
 
 socket.on("disconnect", () => {
   status.textContent = "🔴 Bağlantı kesildi";
 });
 
-joinBtn.addEventListener("click", () => {
-  const name = nickInput.value.trim();
+socket.on("state", (state) => {
+  currentRoom = state.room;
 
-  if (!name) {
-    alert("Önce nickini yaz kral 😄");
-    return;
-  }
+  renderRooms(state.rooms);
+  renderUsers(state.users);
+  updateRoom();
+});
 
-  nick = name;
+socket.on("room changed", (room) => {
+  currentRoom = room;
 
-  nickInput.disabled = true;
-  joinBtn.disabled = true;
-  textInput.disabled = false;
-  textInput.focus();
+  messages.innerHTML = "";
 
-  socket.emit("join", nick);
+  updateRoom();
+});
+
+socket.on("users", (users) => {
+  renderUsers(users);
+});
+
+socket.on("system message", (message) => {
+  addMessage("Sistem", message, "system");
+});
+
+socket.on("chat message", (data) => {
+  addMessage(
+    data.nick,
+    data.text,
+    "chat",
+    data.time
+  );
 });
 
 form.addEventListener("submit", (e) => {
   e.preventDefault();
 
-  const message = textInput.value.trim();
+  const value = text.value.trim();
 
-  if (!message || !nick) return;
+  if (!value || !nick) {
+    return;
+  }
 
-  socket.emit("chat message", {
-    nick: nick,
-    text: message
+  socket.emit("chat message", value);
+
+  text.value = "";
+  text.focus();
+});
+
+function renderRooms(rooms) {
+  roomsEl.innerHTML = "";
+
+  rooms.forEach((room) => {
+    const button = document.createElement("button");
+
+    button.className =
+      "room-btn" +
+      (room === currentRoom ? " active" : "");
+
+    button.innerHTML = `
+      <span>${roomIcons[room] || "💬"}</span>
+      <b>${escapeHtml(room)}</b>
+    `;
+
+    button.addEventListener("click", () => {
+      if (room !== currentRoom) {
+        socket.emit("change room", room);
+      }
+    });
+
+    roomsEl.appendChild(button);
   });
+}
 
-  textInput.value = "";
-});
+function renderUsers(list) {
+  usersEl.innerHTML = "";
 
-socket.on("chat message", (data) => {
-  const div = document.createElement("div");
-  div.className = "msg";
-
-  const name = document.createElement("b");
-  name.textContent = (data.nick || "Misafir") + ": ";
-
-  const message = document.createElement("span");
-  message.textContent = data.text || "";
-
-  div.appendChild(name);
-  div.appendChild(message);
-
-  messages.appendChild(div);
-  messages.scrollTop = messages.scrollHeight;
-});
-
-socket.on("users", (list) => {
-  users.innerHTML = "";
+  userCount.textContent = list.length;
+  onlineCount.textContent = `${list.length} kişi online`;
 
   list.forEach((name) => {
-    const div = document.createElement("div");
-    div.textContent = "🟢 " + name;
-    users.appendChild(div);
+    const row = document.createElement("div");
+
+    row.className = "user-row";
+
+    const dot = document.createElement("span");
+
+    dot.className = "online-dot";
+
+    const nameEl = document.createElement("span");
+
+    nameEl.textContent = name;
+
+    if (name === nick) {
+      const crown = document.createElement("span");
+
+      crown.textContent = " 👑";
+
+      nameEl.appendChild(crown);
+    }
+
+    row.append(dot, nameEl);
+
+    usersEl.appendChild(row);
   });
-});
+}
+
+function addMessage(name, content, type, time = "") {
+  const row = document.createElement("div");
+
+  row.className = `message ${type}`;
+
+  if (type === "system") {
+    row.textContent = content;
+  } else {
+    row.innerHTML = `
+      <div class="message-avatar">
+        ${escapeHtml(name.charAt(0).toUpperCase())}
+      </div>
+
+      <div class="message-body">
+
+        <div class="message-meta">
+          <b>${escapeHtml(name)}</b>
+          <small>${escapeHtml(time)}</small>
+        </div>
+
+        <div class="message-text">
+          ${escapeHtml(content)}
+        </div>
+
+      </div>
+    `;
+  }
+
+  messages.appendChild(row);
+
+  messages.scrollTop = messages.scrollHeight;
+}
+
+function updateRoom() {
+  roomName.textContent = currentRoom;
+
+  document.querySelectorAll(".room-btn").forEach((button) => {
+    const b = button.querySelector("b");
+
+    button.classList.toggle(
+      "active",
+      b && b.textContent === currentRoom
+    );
+  });
+}
+
+logoutBtn.addEventListener("click", () => {
+  location
