@@ -1,81 +1,58 @@
-const socket = io();
 
-const nickInput = document.getElementById("nick");
-const joinBtn = document.getElementById("join");
-const textInput = document.getElementById("text");
-const form = document.getElementById("form");
-const messages = document.getElementById("messages");
-const status = document.getElementById("status");
-const users = document.getElementById("users");
+  const express = require("express");
+const http = require("http");
+const { Server } = require("socket.io");
 
-let nick = "";
+const app = express();
+const server = http.createServer(app);
+const io = new Server(server);
 
-socket.on("connect", () => {
-  status.textContent = "🟢 Bağlandı";
-});
+const PORT = process.env.PORT || 3000;
 
-socket.on("disconnect", () => {
-  status.textContent = "🔴 Bağlantı kesildi";
-});
+app.use(express.static(__dirname));
 
-joinBtn.addEventListener("click", () => {
-  const name = nickInput.value.trim();
+const users = new Map();
 
-  if (!name) {
-    alert("Önce nickini yaz kral 😄");
-    return;
-  }
+io.on("connection", (socket) => {
+  console.log("Bir kullanıcı bağlandı");
 
-  nick = name;
+  socket.on("join", (nick) => {
+    users.set(socket.id, nick);
 
-  nickInput.disabled = true;
-  joinBtn.disabled = true;
-  textInput.disabled = false;
-  textInput.focus();
+    io.emit("users", Array.from(users.values()));
 
-  socket.emit("join", nick);
-});
-
-form.addEventListener("submit", (e) => {
-  e.preventDefault();
-
-  const message = textInput.value.trim();
-
-  if (!message || !nick) return;
-
-  socket.emit("chat message", {
-    nick: nick,
-    text: message
+    io.emit("chat message", {
+      nick: "Sistem",
+      text: `${nick} sohbete katıldı.`
+    });
   });
 
-  textInput.value = "";
-  textInput.focus();
+  socket.on("chat message", (data) => {
+    if (!data || !data.text) return;
+
+    io.emit("chat message", {
+      nick: data.nick || users.get(socket.id) || "Misafir",
+      text: data.text
+    });
+  });
+
+  socket.on("disconnect", () => {
+    const nick = users.get(socket.id);
+
+    if (nick) {
+      users.delete(socket.id);
+      io.emit("users", Array.from(users.values()));
+
+      io.emit("chat message", {
+        nick: "Sistem",
+        text: `${nick} sohbetten ayrıldı.`
+      });
+    }
+
+    console.log("Bir kullanıcı ayrıldı");
+  });
 });
 
-socket.on("chat message", (data) => {
-  const div = document.createElement("div");
-  div.className = "msg";
-
-  if (typeof data === "string") {
-    div.textContent = data;
-  } else {
-    const name = document.createElement("b");
-    name.textContent = (data.nick || "Misafir") + ": ";
-
-    const message = document.createElement("span");
-    message.textContent = data.text || "";
-
-    div.appendChild(name);
-    div.appendChild(message);
-  }
-
-  messages.appendChild(div);
-  messages.scrollTop = messages.scrollHeight;
+server.listen(PORT, "0.0.0.0", () => {
+  console.log(`Sunucu ${PORT} portunda çalışıyor`);
 });
-
-socket.on("users", (list) => {
-  users.innerHTML = "";
-
-  list.forEach((name) => {
-    const div = document.createElement("div");
-    div
