@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Gardaş Chat</title><link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="app">
+  <aside>
+    <h2>💬 Gardaş Chat</h2>
+    <input id="nick" placeholder="Nickin">
+    <button id="join">Sohbete Gir</button>
+    <h3>Odalar</h3>
+    <div id="rooms"></div>
+    <h3>🟢 Online</h3><div id="users"></div>
+    <a href="admin.html">⚙️ Admin Paneli</a>
+  </aside>
+  <main>
+    <header><b id="room">Genel</b><span id="status">Bağlanıyor...</span></header>
+    <section id="messages"></section>
+    <form id="form"><input id="text" maxlength="500" placeholder="Mesajını yaz..." autocomplete="off"><button>Gönder</button></form>
+  </main>
+</div>
+<script src="/socket.io/socket.io.js"></script><script src="app.js"></script>
+</body></html>

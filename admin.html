@@ -1,0 +1,8 @@
+<!doctype html><html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Admin Paneli</title><link rel="stylesheet" href="style.css"></head>
+<body><div class="admin"><h1>⚙️ Admin Paneli</h1><p>Demo anahtar: <b>1234</b> — yayına almadan değiştir.</p>
+<input id="key" value="1234" placeholder="Admin anahtarı"><button onclick="load()">Kullanıcıları Getir</button><div id="list"></div><p><a href="/">← Sohbete dön</a></p></div>
+<script>
+async function api(url,opts={}){opts.headers={...(opts.headers||{}),'x-admin-key':document.querySelector('#key').value,'content-type':'application/json'};return fetch(url,opts)}
+async function load(){const r=await api('/api/admin/users');const a=await r.json();document.querySelector('#list').innerHTML=a.map(u=>`<div style="padding:10px;border-bottom:1px solid #ddd"><b>${u.name}</b> — ${u.room} <button onclick="act('mute','${encodeURIComponent(u.name)}')">Sustur</button><button onclick="act('ban','${encodeURIComponent(u.name)}')">Banla</button></div>`).join('')||'Online kullanıcı yok.'}
+async function act(type,name){await api('/api/admin/'+type,{method:'POST',body:JSON.stringify({name:decodeURIComponent(name)})});load()}
+</script></body></html>
