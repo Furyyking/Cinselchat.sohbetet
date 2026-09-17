@@ -1,25 +1,132 @@
-<!doctype html>
-<html lang="tr">
-<head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Gardaş Chat</title><link rel="stylesheet" href="style.css">
-</head>
-<body>
-<div class="app">
-  <aside>
-    <h2>💬 Gardaş Chat</h2>
-    <input id="nick" placeholder="Nickin">
-    <button id="join">Sohbete Gir</button>
-    <h3>Odalar</h3>
-    <div id="rooms"></div>
-    <h3>🟢 Online</h3><div id="users"></div>
-    <a href="admin.html">⚙️ Admin Paneli</a>
-  </aside>
-  <main>
-    <header><b id="room">Genel</b><span id="status">Bağlanıyor...</span></header>
-    <section id="messages"></section>
-    <form id="form"><input id="text" maxlength="500" placeholder="Mesajını yaz..." autocomplete="off"><button>Gönder</button></form>
-  </main>
-</div>
-<script src="/socket.io/socket.io.js"></script><script src="app.js"></script>
-</body></html>
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #eef1f5;
+  color: #20242a;
+}
+
+.app {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  max-width: 1200px;
+  margin: auto;
+  background: white;
+  box-shadow: 0 0 30px #0001;
+}
+
+aside {
+  padding: 20px;
+  background: #17202a;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+aside h2 {
+  margin-top: 0;
+}
+
+aside input,
+aside button,
+form input,
+form button {
+  padding: 12px;
+  border: 0;
+  border-radius: 8px;
+}
+
+aside input {
+  width: 100%;
+}
+
+aside button {
+  cursor: pointer;
+}
+
+#rooms {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+#rooms button {
+  text-align: left;
+}
+
+aside a {
+  color: white;
+  margin-top: auto;
+}
+
+main {
+  display: grid;
+  grid-template-rows: 60px 1fr 64px;
+  min-width: 0;
+  min-height: 100vh;
+}
+
+header {
+  padding: 18px;
+  border-bottom: 1px solid #ddd;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+#status {
+  font-size: 13px;
+  color: #27a05a;
+}
+
+#messages {
+  overflow-y: auto;
+  padding: 10px;
+  background: white;
+}
+
+.msg {
+  padding: 10px 14px;
+  border-bottom: 1px solid #eee;
+  line-height: 1.45;
+}
+
+.msg small {
+  color: #888;
+  margin-left: 6px;
+}
+
+form {
+  display: flex;
+  gap: 8px;
+  padding: 10px;
+  border-top: 1px solid #ddd;
+  background: white;
+}
+
+form input {
+  flex: 1;
+  background: #f0f2f5;
+  outline: none;
+}
+
+form button {
+  background: #17202a;
+  color: white;
+  cursor: pointer;
+}
+
+form button:hover,
+aside button:hover {
+  opacity: 0.9;
+}
+
+.admin {
+  max-width: 900px;
+  margin: 30px auto;
+  padding: 20
