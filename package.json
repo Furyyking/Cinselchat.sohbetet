@@ -2,9 +2,9 @@
   "name": "cinselchat-sohbet",
   "version": "1.0.0",
   "description": "Ücretsiz sohbet paneli",
-  "main": "sunucu.js",
+  "main": "server.js",
   "scripts": {
-    "start": "node sunucu.js"
+    "start": "node server.js"
   },
   "dependencies": {
     "express": "^4.21.2",
